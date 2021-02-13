@@ -1,6 +1,7 @@
+import { validateMissionInput } from './../middlewares/validation';
 import {
     EncryptedMission, GetMissionBody, MissionPutBody, DeleteResponse, MissionPostBody,
-    MissionGetterParam, IMission, GetMissionsBody, PostReponse
+    MissionGetterParam, IMissionInput, GetMissionsBody, PostReponse
 } from '../types/mission.enum';
 import { LogTypes } from '../types/logTypes.enum';
 import { Request, Response } from 'express';
@@ -15,11 +16,11 @@ import { JWTPayload } from '../types/user.enum';
 
 
 enum EndPoints {
-    POST = "/",
-    GET_ALL = "/",
-    GET_SPECIFIC = "/:key",
-    PUT = "/:key",
-    DELETE = "/:key"
+    CREATE_MISSION = "/",
+    GET_ALL_MISSIONS_BY_USER = "/",
+    GET_SPECIFIC_MISSION_FOR_USER = "/:key",
+    UPDATE_MISSION_FOR_USER = "/:key",
+    DELETE_MISSION_FOR_USER = "/:key"
 }
 
 enum ResponseMessage {
@@ -41,11 +42,12 @@ export default class MissionsController extends BaseController {
     }
 
     intializeRoutes() {
-        this.router.post(EndPoints.POST, authenticate(), this.createMission);
-        this.router.get(EndPoints.GET_SPECIFIC, authenticate(), this.getMission);
-        this.router.get(EndPoints.GET_ALL, authenticate(), this.getAllMissions);
-        this.router.put(EndPoints.PUT, authenticate(), this.updateMission);
-        this.router.delete(EndPoints.DELETE, authenticate(), this.deleteMission);
+        this.router.use(authenticate());
+        this.router.post(EndPoints.CREATE_MISSION,validateMissionInput ,this.createMission);
+        this.router.get(EndPoints.GET_SPECIFIC_MISSION_FOR_USER, this.getMission);
+        this.router.get(EndPoints.GET_ALL_MISSIONS_BY_USER, this.getAllMissions);
+        this.router.put(EndPoints.UPDATE_MISSION_FOR_USER, this.updateMission);
+        this.router.delete(EndPoints.DELETE_MISSION_FOR_USER, this.deleteMission);
     }
 
     private async createMission(req: Request<any, any, MissionPostBody>, res: Response<PostReponse>) {
@@ -62,7 +64,7 @@ export default class MissionsController extends BaseController {
         }
         try {
             const response = await missionProxy.post(this.missionEndPoint, body);
-            const mission = this.decryptMission(response.data as EncryptedMission);
+            const mission = EncryptionModule.decryptMission(response.data as EncryptedMission);
             log = await insertAuditLog(user._id, LogTypes.MISSION_CREATED, ResponseMessage.MISSION_CREATED);
             res.json({ log, content: ResponseMessage.MISSION_CREATED, mission })
         } catch (ex) {
@@ -79,22 +81,12 @@ export default class MissionsController extends BaseController {
         key = EncryptionModule.encryptString(key);
         return { key, user }
     }
-    private decryptMission(mission: EncryptedMission): IMission {
-        const { user } = mission;
-        const key: string = EncryptionModule.decryptString(mission.key);
-        const value: Record<string, any> = EncryptionModule.decryptObj(mission.value);
-        return {
-            user,
-            key,
-            value
-        }
-    }
     private async getMission(req: Request<MissionGetterParam>, res: Response<GetMissionBody | string>) {
         const { user, key } = this.defineUserAndEncryptKey(req);
         const endPoint = this.endPointByUserAndKey(user, key);
         try {
             const response = await missionProxy.get(endPoint);
-            const mission = this.decryptMission(response.data as EncryptedMission);
+            const mission = EncryptionModule.decryptMission(response.data as EncryptedMission);
             return res.json({ mission, content: ResponseMessage.MISSION_GET_SUCCESS });
         } catch (ex) {
             const status = ex.response.status;
@@ -109,7 +101,7 @@ export default class MissionsController extends BaseController {
         try {
             const response = await missionProxy.get(endPoint);
             const encryptedMissions = response.data as EncryptedMission[];
-            const missions: IMission[] = encryptedMissions.map(encrypted => this.decryptMission(encrypted));
+            const missions: IMissionInput[] = encryptedMissions.map(encrypted => EncryptionModule.decryptMission(encrypted));
             return res.json({ missions, content: ResponseMessage.MISSION_GET_SUCCESS });
         } catch (ex) {
             const status = ex.response.status;
@@ -130,7 +122,7 @@ export default class MissionsController extends BaseController {
         try {
             const response = await missionProxy.put(endPoint, body);
             if (response.status === NO_CONTENT) return res.status(NO_CONTENT).send(ResponseMessage.ALREADY_UPDATED);
-            const mission = this.decryptMission(response.data as EncryptedMission);
+            const mission = EncryptionModule.decryptMission(response.data as EncryptedMission);
             log = await insertAuditLog(user._id, LogTypes.MISSION_UPDATED, ResponseMessage.MISSION_UPDATED);
             res.json({ log, content: ResponseMessage.MISSION_UPDATED, mission })
         } catch (ex) {

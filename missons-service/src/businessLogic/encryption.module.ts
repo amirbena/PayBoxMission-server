@@ -1,15 +1,7 @@
-import { IMissionInput } from './../types/mission.enum';
-import { EncryptedMission } from '../types/mission.enum';
+import { EncryptedMission,IMissionInput } from '../types/mission.enum';
 import { AES, enc } from 'crypto-js';
 import "../config/dotenv.config";
 
-const convertCharacter = (character: string): any => {
-    const dictonary: Record<string, string> = {
-        '{': '}',
-        '}': '{'
-    }
-    return dictonary[character] ? dictonary[character] : character;
-}
 
 const ENCRYPTION_KEY: string = process.env.ENCRYPTION_KEY || "key";
 

@@ -1,7 +1,7 @@
-import axios, { AxiosInstance,AxiosError } from 'axios'
+import axios, { AxiosInstance } from 'axios'
 
 
-const baseURL = "http://localhost:5002/"
+const baseURL = process.env.MISSIONS_API
 
 const missionProxy: AxiosInstance = axios.create({
     baseURL

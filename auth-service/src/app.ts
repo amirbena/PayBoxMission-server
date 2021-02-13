@@ -7,10 +7,7 @@ import * as bodyParser from 'body-parser';
 import UserController from './controllers/user.controller';
 import LogController from './controllers/log.controller';
 import express, { Express } from 'express';
-import * as dotenv from 'dotenv';
 import { Server } from 'http';
-import { insertAuditLog } from './businessLogic/auditLog.business';
-import path from 'path';
 
 export default class App {
     private app: Express = express();

@@ -1,3 +1,4 @@
+import { validateUserNamePassword } from './../middlewares/validation';
 import { LogAndContentResponseBody } from './../types/user.enum';
 import { IUserInput } from '../types/mongooseTypes.interface';
 import { userLogin, signUp } from '../businessLogic/user.business';
@@ -14,16 +15,14 @@ enum Paths {
     SignUp = "/signup"
 }
 
-
-
 export default class UserController extends BaseController {
     constructor(path: string) {
         super(path);
     }
 
     protected intializeRoutes() {
-        this.router.post(Paths.Login, this.login);
-        this.router.post(Paths.SignUp, this.signup);
+        this.router.post(Paths.Login,validateUserNamePassword, this.login);
+        this.router.post(Paths.SignUp,validateUserNamePassword ,this.signup);
     }
 
     private async login(req: Request<any, any, IUserInput>, res: Response<LogAndContentResponseBody>) {
