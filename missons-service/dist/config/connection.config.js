@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importDefault(require("mongoose"));
 require("./dotenv.config");
-console.log(process.env.DB_CONNECTION);
 var connectionString = process.env.DB_CONNECTION || "NO CONNECTION";
 var successMessage = "Success to connect DB";
 var failedMessage = "Failed to connect to DB";

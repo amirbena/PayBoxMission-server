@@ -174,6 +174,9 @@ var MissionController = /** @class */ (function () {
                         return [4 /*yield*/, MissionBusiness.updateMission(user, key, encryptedMissionToUpdate)];
                     case 2:
                         encryptedMission = _b.sent();
+                        if ("status" in encryptedMission) {
+                            return [2 /*return*/, res.status(encryptedMission.status).send(encryptedMission.content)];
+                        }
                         res.json(encryptedMission);
                         return [3 /*break*/, 4];
                     case 3:

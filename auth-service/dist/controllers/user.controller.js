@@ -52,6 +52,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var validation_1 = require("./../middlewares/validation");
 var user_business_1 = require("../businessLogic/user.business");
 var logTypes_enum_1 = require("../types/logTypes.enum");
 var auditLog_business_1 = require("../businessLogic/auditLog.business");
@@ -69,8 +70,8 @@ var UserController = /** @class */ (function (_super) {
         return _super.call(this, path) || this;
     }
     UserController.prototype.intializeRoutes = function () {
-        this.router.post(Paths.Login, this.login);
-        this.router.post(Paths.SignUp, this.signup);
+        this.router.post(Paths.Login, validation_1.validateUserNamePassword, this.login);
+        this.router.post(Paths.SignUp, validation_1.validateUserNamePassword, this.signup);
     };
     UserController.prototype.login = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {

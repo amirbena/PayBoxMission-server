@@ -1,6 +1,9 @@
 Hey To all,
 
 First of all, put .env and .test.env file (please sure that the file is .dotenv)
+
+* npm run build- build dist project.
+* npm start- start the server
 This is the requests of this project:
 
 * signup-create new user in system username&password and recieve token back and log for signup (if no have username&password- return 400 status). if username exists, return status 409

@@ -110,14 +110,34 @@ var getMissionByKey = function (user, encryptedKey) { return __awaiter(void 0, v
     });
 }); };
 exports.getMissionByKey = getMissionByKey;
+var buildObjectToUpdate = function (encryptedMission) {
+    var bodyToUpdate = {};
+    if (encryptedMission.key) {
+        bodyToUpdate = Object.assign(bodyToUpdate, {
+            key: EncryptionModule.decryptString(encryptedMission.key)
+        });
+    }
+    if (encryptedMission.value) {
+        bodyToUpdate = Object.assign(bodyToUpdate, {
+            key: EncryptionModule.decryptObj(encryptedMission.value)
+        });
+    }
+    return bodyToUpdate;
+};
 var updateMission = function (user, encryptedKey, encryptedMission) { return __awaiter(void 0, void 0, void 0, function () {
-    var mission, key, result, content;
+    var missionToUpdate, key, result, content, updatedMission, content;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                mission = EncryptionModule.decryptMission(encryptedMission);
+                missionToUpdate = buildObjectToUpdate(encryptedMission);
+                if (!Object.keys(missionToUpdate).length) {
+                    return [2 /*return*/, {
+                            status: http_status_codes_1.NO_CONTENT,
+                            content: EncryptionModule.encryptString("Already Updated")
+                        }];
+                }
                 key = EncryptionModule.decryptString(encryptedKey);
-                return [4 /*yield*/, mission_model_1.default.update({ key: key, user: user }, mission).exec()];
+                return [4 /*yield*/, mission_model_1.default.update({ key: key, user: user }, missionToUpdate).exec()];
             case 1:
                 result = _a.sent();
                 if (!result) {
@@ -127,7 +147,17 @@ var updateMission = function (user, encryptedKey, encryptedMission) { return __a
                         content: content
                     };
                 }
-                return [2 /*return*/, encryptedMission];
+                return [4 /*yield*/, mission_model_1.default.findOne({ key: key, user: user })];
+            case 2:
+                updatedMission = _a.sent();
+                if (!updatedMission) {
+                    content = EncryptionModule.encryptString(mission_enum_1.MissionMessages.NOT_FOUND);
+                    throw {
+                        status: http_status_codes_1.NOT_FOUND,
+                        content: content
+                    };
+                }
+                return [2 /*return*/, EncryptionModule.encryptMission(updatedMission)];
         }
     });
 }); };

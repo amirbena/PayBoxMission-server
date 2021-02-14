@@ -2,7 +2,6 @@
 import mongoose from 'mongoose';
 import "./dotenv.config";
 
-console.log(process.env.DB_CONNECTION);
 
 const connectionString: string = process.env.DB_CONNECTION || "NO CONNECTION";
 

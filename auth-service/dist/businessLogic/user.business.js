@@ -42,6 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.signUp = exports.userLogin = void 0;
 var user_enum_1 = require("../types/user.enum");
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+var bcrypt_1 = __importDefault(require("bcrypt"));
 var crypto_1 = __importDefault(require("crypto"));
 var http_status_codes_1 = require("http-status-codes");
 var user_model_1 = __importDefault(require("../models/user.model"));
@@ -61,7 +62,7 @@ var genKey = function (user) { return __awaiter(void 0, void 0, void 0, function
     });
 }); };
 var userLogin = function (userInput) { return __awaiter(void 0, void 0, void 0, function () {
-    var password, userName, result, error, token;
+    var password, userName, result, error, passwordsSame, token;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -76,7 +77,10 @@ var userLogin = function (userInput) { return __awaiter(void 0, void 0, void 0, 
                     };
                     throw error;
                 }
-                if (result.password !== password) {
+                return [4 /*yield*/, bcrypt_1.default.compare(password, result.password)];
+            case 2:
+                passwordsSame = _a.sent();
+                if (!passwordsSame) {
                     error = {
                         status: http_status_codes_1.CONFLICT,
                         message: user_enum_1.LoginErrorMessage.PASSWORDS_NOT_MATCH
@@ -84,7 +88,7 @@ var userLogin = function (userInput) { return __awaiter(void 0, void 0, void 0, 
                     throw error;
                 }
                 return [4 /*yield*/, genKey(result)];
-            case 2:
+            case 3:
                 token = _a.sent();
                 return [2 /*return*/, { token: token, user: result }];
         }
@@ -92,11 +96,11 @@ var userLogin = function (userInput) { return __awaiter(void 0, void 0, void 0, 
 }); };
 exports.userLogin = userLogin;
 var signUp = function (userInput) { return __awaiter(void 0, void 0, void 0, function () {
-    var password, userName, result, error, user, token;
+    var userName, result, error, salt, password, user, token;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                password = userInput.password, userName = userInput.userName;
+                userName = userInput.userName;
                 return [4 /*yield*/, user_model_1.default.findOne({ userName: userName })];
             case 1:
                 result = _a.sent();
@@ -107,14 +111,20 @@ var signUp = function (userInput) { return __awaiter(void 0, void 0, void 0, fun
                     };
                     throw error;
                 }
+                return [4 /*yield*/, bcrypt_1.default.genSalt()];
+            case 2:
+                salt = _a.sent();
+                return [4 /*yield*/, bcrypt_1.default.hash(userInput.password, salt)];
+            case 3:
+                password = _a.sent();
                 return [4 /*yield*/, user_model_1.default.create({
                         userName: userName,
                         password: password
                     })];
-            case 2:
+            case 4:
                 user = _a.sent();
                 return [4 /*yield*/, genKey(user)];
-            case 3:
+            case 5:
                 token = _a.sent();
                 return [2 /*return*/, { token: token, user: user }];
         }

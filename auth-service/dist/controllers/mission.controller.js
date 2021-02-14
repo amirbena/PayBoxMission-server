@@ -71,6 +71,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var validation_1 = require("./../middlewares/validation");
 var logTypes_enum_1 = require("../types/logTypes.enum");
 var base_controller_1 = __importDefault(require("./base.controller"));
 var passport_config_1 = require("../config/passport.config");
@@ -80,11 +81,11 @@ var auditLog_business_1 = require("../businessLogic/auditLog.business");
 var http_status_codes_1 = require("http-status-codes");
 var EndPoints;
 (function (EndPoints) {
-    EndPoints["POST"] = "/";
-    EndPoints["GET_ALL"] = "/";
-    EndPoints["GET_SPECIFIC"] = "/:key";
-    EndPoints["PUT"] = "/:key";
-    EndPoints["DELETE"] = "/:key";
+    EndPoints["CREATE_MISSION"] = "/";
+    EndPoints["GET_ALL_MISSIONS_BY_USER"] = "/";
+    EndPoints["GET_SPECIFIC_MISSION_FOR_USER"] = "/:key";
+    EndPoints["UPDATE_MISSION_FOR_USER"] = "/:key";
+    EndPoints["DELETE_MISSION_FOR_USER"] = "/:key";
 })(EndPoints || (EndPoints = {}));
 var ResponseMessage;
 (function (ResponseMessage) {
@@ -105,11 +106,12 @@ var MissionsController = /** @class */ (function (_super) {
         return "" + this.missionEndPoint + user._id.toHexString() + (key && "/" + key);
     };
     MissionsController.prototype.intializeRoutes = function () {
-        this.router.post(EndPoints.POST, passport_config_1.authenticate(), this.createMission);
-        this.router.get(EndPoints.GET_SPECIFIC, passport_config_1.authenticate(), this.getMission);
-        this.router.get(EndPoints.GET_ALL, passport_config_1.authenticate(), this.getAllMissions);
-        this.router.put(EndPoints.PUT, passport_config_1.authenticate(), this.updateMission);
-        this.router.delete(EndPoints.DELETE, passport_config_1.authenticate(), this.deleteMission);
+        this.router.use(passport_config_1.authenticate());
+        this.router.post(EndPoints.CREATE_MISSION, validation_1.validateMissionInput, this.createMission);
+        this.router.get(EndPoints.GET_SPECIFIC_MISSION_FOR_USER, this.getMission);
+        this.router.get(EndPoints.GET_ALL_MISSIONS_BY_USER, this.getAllMissions);
+        this.router.put(EndPoints.UPDATE_MISSION_FOR_USER, this.updateMission);
+        this.router.delete(EndPoints.DELETE_MISSION_FOR_USER, this.deleteMission);
     };
     MissionsController.prototype.createMission = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
@@ -133,7 +135,7 @@ var MissionsController = /** @class */ (function (_super) {
                         return [4 /*yield*/, missionsProxy_config_1.default.post(this.missionEndPoint, body)];
                     case 2:
                         response = _a.sent();
-                        mission = this.decryptMission(response.data);
+                        mission = EncryptionModule.decryptMission(response.data);
                         return [4 /*yield*/, auditLog_business_1.insertAuditLog(user._id, logTypes_enum_1.LogTypes.MISSION_CREATED, ResponseMessage.MISSION_CREATED)];
                     case 3:
                         log = _a.sent();
@@ -159,16 +161,6 @@ var MissionsController = /** @class */ (function (_super) {
         key = EncryptionModule.encryptString(key);
         return { key: key, user: user };
     };
-    MissionsController.prototype.decryptMission = function (mission) {
-        var user = mission.user;
-        var key = EncryptionModule.decryptString(mission.key);
-        var value = EncryptionModule.decryptObj(mission.value);
-        return {
-            user: user,
-            key: key,
-            value: value
-        };
-    };
     MissionsController.prototype.getMission = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, user, key, endPoint, response, mission, ex_2, status, message;
@@ -183,7 +175,7 @@ var MissionsController = /** @class */ (function (_super) {
                         return [4 /*yield*/, missionsProxy_config_1.default.get(endPoint)];
                     case 2:
                         response = _b.sent();
-                        mission = this.decryptMission(response.data);
+                        mission = EncryptionModule.decryptMission(response.data);
                         return [2 /*return*/, res.json({ mission: mission, content: ResponseMessage.MISSION_GET_SUCCESS })];
                     case 3:
                         ex_2 = _b.sent();
@@ -199,7 +191,6 @@ var MissionsController = /** @class */ (function (_super) {
     MissionsController.prototype.getAllMissions = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
             var user, endPoint, response, encryptedMissions, missions, ex_3, status, message;
-            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -212,7 +203,7 @@ var MissionsController = /** @class */ (function (_super) {
                     case 2:
                         response = _a.sent();
                         encryptedMissions = response.data;
-                        missions = encryptedMissions.map(function (encrypted) { return _this.decryptMission(encrypted); });
+                        missions = encryptedMissions.map(function (encrypted) { return EncryptionModule.decryptMission(encrypted); });
                         return [2 /*return*/, res.json({ missions: missions, content: ResponseMessage.MISSION_GET_SUCCESS })];
                     case 3:
                         ex_3 = _a.sent();
@@ -247,7 +238,7 @@ var MissionsController = /** @class */ (function (_super) {
                         response = _b.sent();
                         if (response.status === http_status_codes_1.NO_CONTENT)
                             return [2 /*return*/, res.status(http_status_codes_1.NO_CONTENT).send(ResponseMessage.ALREADY_UPDATED)];
-                        mission = this.decryptMission(response.data);
+                        mission = EncryptionModule.decryptMission(response.data);
                         return [4 /*yield*/, auditLog_business_1.insertAuditLog(user._id, logTypes_enum_1.LogTypes.MISSION_UPDATED, ResponseMessage.MISSION_UPDATED)];
                     case 3:
                         log = _b.sent();

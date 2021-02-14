@@ -5,8 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importDefault(require("mongoose"));
 require("./dotenv.config");
-var _a = process.env, USER_NAME = _a.USER_NAME, PASSWORD = _a.PASSWORD, DB_NAME = _a.DB_NAME;
-var connectionString = "mongodb+srv://" + USER_NAME + ":" + PASSWORD + "@cluster0.tkccy.mongodb.net/" + DB_NAME + "?retryWrites=true&w=majority";
+var connectionString = process.env.DB_CONNECTION || "NO CONNECTION";
 var successMessage = "Success to connect DB";
 var failedMessage = "Failed to connect to DB";
 mongoose_1.default.connect(connectionString, {

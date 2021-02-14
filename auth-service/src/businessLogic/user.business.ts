@@ -1,7 +1,8 @@
 
-import { UserLoginError, LoginErrorMessage, SignUpErrorMessage,LoginResult, JWTPayload } from '../types/user.enum';
+import { UserLoginError, LoginErrorMessage, SignUpErrorMessage, LoginResult, JWTPayload } from '../types/user.enum';
 import { IUser, IUserInput } from '../types/mongooseTypes.interface';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { CONFLICT, NOT_FOUND } from 'http-status-codes';
 import UserModel from '../models/user.model';
@@ -13,7 +14,7 @@ import UserModel from '../models/user.model';
 const genKey = async (user: IUser) => {
 
     const key = process.env.TOKEN_KEY || crypto.randomBytes(16).toString("hex");
-    const payload:JWTPayload = {
+    const payload: JWTPayload = {
         _id: user._id,
         userName: user.userName
     }
@@ -33,7 +34,8 @@ export const userLogin = async (userInput: IUserInput): Promise<LoginResult> => 
         }
         throw error;
     }
-    if (result.password !== password) {
+    const passwordsSame= await bcrypt.compare(password,result.password);
+    if (!passwordsSame) {
         error = {
             status: CONFLICT,
             message: LoginErrorMessage.PASSWORDS_NOT_MATCH
@@ -45,7 +47,7 @@ export const userLogin = async (userInput: IUserInput): Promise<LoginResult> => 
 }
 
 export const signUp = async (userInput: IUserInput) => {
-    const { password, userName } = userInput;
+    const { userName } = userInput;
     const result = await UserModel.findOne({ userName });
     if (result) {
         const error = {
@@ -54,6 +56,8 @@ export const signUp = async (userInput: IUserInput) => {
         }
         throw error;
     }
+    const salt = await bcrypt.genSalt();
+    const password = await bcrypt.hash(userInput.password, salt);
     const user = await UserModel.create({
         userName,
         password

@@ -32,5 +32,4 @@ function definePathDotEnv() {
     var nodeEnv = process.env.NODE_ENV || "development";
     return dictonary[nodeEnv];
 }
-var rPath = definePathDotEnv();
-dotenv.config({ path: rPath });
+dotenv.config({ path: definePathDotEnv() });

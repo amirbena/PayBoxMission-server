@@ -1,25 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.decryptObj = exports.encryptObj = exports.decryptString = exports.encryptString = void 0;
+exports.encryptMission = exports.decryptMission = exports.decryptObj = exports.encryptObj = exports.decryptString = exports.encryptString = void 0;
 var crypto_js_1 = require("crypto-js");
 require("../config/dotenv.config");
-var convertCharacter = function (character) {
-    var dictonary = {
-        '{': '}',
-        '}': '{'
-    };
-    return dictonary[character] ? dictonary[character] : character;
-};
-var ENCRYPTION_KEY = process.env.ENCRYPTOION_KEY || "key";
-function convertNestedObjectToString(object) {
-    var newStrArr = JSON.stringify(object).split('')
-        .map(function (character) { return convertCharacter(character); });
-    return newStrArr.join('');
-}
-function convertStringToNestedObject(str) {
-    var newStrArr = str.split('').map(function (character) { return convertCharacter(character); });
-    return JSON.parse(newStrArr.join(''));
-}
+var ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "key";
 function encryptString(plainText) {
     var encryptedObj = crypto_js_1.AES.encrypt(plainText, ENCRYPTION_KEY);
     return encryptedObj.toString();
@@ -31,12 +15,34 @@ function decryptString(encryptedText) {
 }
 exports.decryptString = decryptString;
 function encryptObj(plainObject) {
-    var stringedObject = convertNestedObjectToString(plainObject);
+    var stringedObject = JSON.stringify(plainObject);
     return encryptString(stringedObject);
 }
 exports.encryptObj = encryptObj;
 function decryptObj(encryptedObj) {
     var decryptedStrObj = decryptString(encryptedObj);
-    return convertStringToNestedObject(decryptedStrObj);
+    return JSON.parse(decryptedStrObj);
 }
 exports.decryptObj = decryptObj;
+function decryptMission(mission) {
+    var user = mission.user;
+    var key = decryptString(mission.key);
+    var value = decryptObj(mission.value);
+    return {
+        user: user,
+        key: key,
+        value: value
+    };
+}
+exports.decryptMission = decryptMission;
+function encryptMission(mission) {
+    var user = mission.user;
+    var key = encryptString(mission.key);
+    var value = encryptObj(mission.value);
+    return {
+        user: user,
+        key: key,
+        value: value
+    };
+}
+exports.encryptMission = encryptMission;

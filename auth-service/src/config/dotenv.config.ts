@@ -10,6 +10,5 @@ function definePathDotEnv(): string {
     return dictonary[nodeEnv];
 }
 
-const rPath = definePathDotEnv();
 
-dotenv.config({ path: rPath })
+dotenv.config({ path: definePathDotEnv() })

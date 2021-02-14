@@ -52,13 +52,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var passport_config_1 = require("./../config/passport.config");
 var auditLog_business_1 = require("./../businessLogic/auditLog.business");
 var base_controller_1 = __importDefault(require("./base.controller"));
 var http_status_codes_1 = require("http-status-codes");
-var mongoose_1 = require("mongoose");
 var Paths;
 (function (Paths) {
-    Paths["ALL"] = "/:user_id";
+    Paths["ALL"] = "/";
 })(Paths || (Paths = {}));
 var LogController = /** @class */ (function (_super) {
     __extends(LogController, _super);
@@ -66,19 +66,19 @@ var LogController = /** @class */ (function (_super) {
         return _super.call(this, path) || this;
     }
     LogController.prototype.intializeRoutes = function () {
-        this.router.get(Paths.ALL, this.logsByUser);
+        this.router.get(Paths.ALL, passport_config_1.authenticate(), this.logsByUser);
     };
     LogController.prototype.logsByUser = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
-            var user_id, logs, ex_1;
+            var _id, logs, ex_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        user_id = req.params.user_id;
+                        _id = req.user._id;
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, auditLog_business_1.getAllLogsByUser(mongoose_1.Types.ObjectId(user_id))];
+                        return [4 /*yield*/, auditLog_business_1.getAllLogsByUser(_id)];
                     case 2:
                         logs = _a.sent();
                         return [2 /*return*/, res.json({ logs: logs })];
